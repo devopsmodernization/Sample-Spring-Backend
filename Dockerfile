@@ -3,7 +3,8 @@ ENV HOME=/usr/app
 RUN mkdir -p $HOME
 WORKDIR $HOME
 ADD . $HOME
-RUN mvn -B package --file pom.xml
+RUN ./mvnw -f $HOME/pom.xml -B package 
+
 
 FROM eclipse-temurin:17-jdk-jammy
 VOLUME /tmp
