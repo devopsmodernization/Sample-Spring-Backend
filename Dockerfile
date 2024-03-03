@@ -15,4 +15,4 @@ COPY --from=builder /usr/app/target/*.jar app.jar
 COPY --from=builder /usr/app/opentelemetry-javaagent.jar opentelemetry-javaagent.jar
 ENV JAVA_TOOL_OPTIONS="-javaagent:/app/opentelemetry-javaagent.jar"
 ENV OTEL_SERVICE_NAME="api-backend"
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
