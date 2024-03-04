@@ -1,0 +1,76 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: petclinic
+spec:
+  selector:
+    app: api
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apiproperties
+  namespace: petclinic
+data:
+  application.yaml: |
+    spring:
+      jpa:
+        hibernate:
+          ddl-auto: update
+      datasource:
+        url: jdbc:postgresql://postgres:5432/postgres
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+    logging:
+      level:
+        org:
+          springframework:
+            web: DEBUG
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: petclinic
+  labels:
+    app: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/devopsmodernization/sample-spring-backend:master
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: "OTEL_EXPORTER_OTLP_ENDPOINT"
+              value: "http://grafana-k8s-monitoring-grafana-agent.grafana-exporter.svc.cluster.local:4318"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/config/
+      volumes:
+        - name: config-volume
+          configMap:
+            name: apiproperties
+
+
+
+

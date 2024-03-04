@@ -1,0 +1,54 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: petclinic
+spec:
+  selector:
+    app: postgresql
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+  namespace: petclinic
+spec:
+  selector:
+    matchLabels:
+      app: postgresql # has to match .spec.template.metadata.labels
+  serviceName: "postgresql"
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: postgresql # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: db
+        image: postgres
+        env:
+        - name: "POSTGRES_PASSWORD"
+          value: "postgres"
+        ports:
+        - containerPort: 5432
+          name: db
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql/data
+
+  volumeClaimTemplates:
+  - metadata:
+      name: pgdata
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 1Gi
